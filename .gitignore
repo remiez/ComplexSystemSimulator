@@ -1,0 +1,15 @@
+build/
+.vscode/
+
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+*.o
+*.a
+*.so
+
+compile_commands.json
+
+.DS_Store
