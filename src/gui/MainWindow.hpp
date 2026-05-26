@@ -5,8 +5,10 @@
 class QPushButton;
 class QComboBox;
 class QLabel;
+class QTimer;
 
 class SFMLWidget;
+class ParameterPanel;
 
 class MainWindow : public QMainWindow{
     Q_OBJECT
@@ -18,6 +20,8 @@ class MainWindow : public QMainWindow{
     void setupUi();
     void connectSignals();
     
+    QTimer* updateTimer = nullptr;
+    bool running = false;
     QComboBox* simulationComboBox = nullptr;
 
     QPushButton* startButton = nullptr;
@@ -26,6 +30,7 @@ class MainWindow : public QMainWindow{
 
     QLabel* statusLabel = nullptr;
 
+    ParameterPanel* parameterPanel = nullptr;
     SFMLWidget* renderWidget = nullptr;
     SimulationManager simulationManager;
     

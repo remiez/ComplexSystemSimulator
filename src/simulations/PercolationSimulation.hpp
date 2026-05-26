@@ -8,5 +8,12 @@ class PercolationSimulation : public Simulation
     void reset() override;
     void update(double dt) override;
     void render(sf::RenderTarget& target) override;
+    std::vector<Parameter> getParameters() const override;
+    void setParameter(const std::string& name, double value) override;
+    std::vector<std::pair<std::string, double>> getStats() const override;
 
+    private:
+    double propability = 0.5; 
+    double gridsize = 150;
+    double time = 0;
 };
