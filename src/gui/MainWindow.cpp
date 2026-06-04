@@ -31,6 +31,18 @@ void MainWindow::setupUi()
         if(running){
             simulationManager.update(0.016);
         }
+        if(simulationManager.currentSimulation()){
+            QString text;
+
+            for(const auto& stat: simulationManager.currentSimulation()->getStats()){
+                text += QString::fromStdString(stat.first);
+                text +=": ";
+                text += QString::number(stat.second, 'f', 4);
+                text += "\n";
+            }
+
+            statsLabel->setText(text);
+        }
         });
     updateTimer->start(16);
     auto* centralWidget = new QWidget(this);
@@ -72,6 +84,9 @@ void MainWindow::setupUi()
     controlsLayout->addWidget(resetButton);
 
     statusLabel = new QLabel("Status: idle");
+    statsLabel = new QLabel("Stats: -");
+    statsLabel->setWordWrap(true);
+    leftPanel->addWidget(statsLabel);
 
     leftPanel->addWidget(simulationBox);
     leftPanel->addWidget(parameterBox);

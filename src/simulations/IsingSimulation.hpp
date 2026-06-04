@@ -22,8 +22,11 @@ class IsingSimulation : public Simulation
     double ComputeMagnetization() const;
     double ComputeEnergy() const;
     int spin(int x, int y) const;
-    
+
+    long long attemptedFlips = 0;
+    long long acceptedFlips = 0;
     int latticeSize = 128;
+    int stepsPerFrame = latticeSize*latticeSize;
     double temperature = 2;
     double magneticField = 0;
     double couplingJ = 1;

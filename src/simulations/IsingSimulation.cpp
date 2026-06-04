@@ -1,5 +1,6 @@
 #include "IsingSimulation.hpp"
 #include <algorithm>
+#include <cmath>
 
 IsingSimulation::IsingSimulation()
     :rng(std::random_device{}()), uniform(0,1)
@@ -16,6 +17,8 @@ void IsingSimulation::reset(){
     vertices.setPrimitiveType(sf::Quads);
     vertices.resize(latticeSize*latticeSize*4);
     MonteCarloSteps = 0;
+    attemptedFlips=0;
+    acceptedFlips=0;
 }
 
 void IsingSimulation::randomizeSpin(){
@@ -31,6 +34,7 @@ int IsingSimulation::spin(int x, int y) const{
 }
 
 void IsingSimulation::metropolisStep(){
+    attemptedFlips++;
     std::uniform_int_distribution<int> siteDist(0, latticeSize-1);
     int x = siteDist(rng);
     int y = siteDist(rng);
@@ -41,6 +45,7 @@ void IsingSimulation::metropolisStep(){
     double deltaE = 2*s*(couplingJ*neighborSum+magneticField);
     if (deltaE <= 0){
         spins[y*latticeSize+x]*=-1;
+        acceptedFlips++;
     }
     else{
         double p = std::exp(-deltaE/temperature);
@@ -48,6 +53,7 @@ void IsingSimulation::metropolisStep(){
             spins[y*latticeSize+x]*=-1;
         }
     }
+
 }
 
 void IsingSimulation::update(double dt){
@@ -55,10 +61,8 @@ void IsingSimulation::update(double dt){
     if( magnetiztionHistory.size() > maxHistorySize){
         magnetiztionHistory.erase(magnetiztionHistory.begin());
     }
-    int stepsPerFrame = latticeSize * latticeSize;
     for(int i=0;i < stepsPerFrame; ++i){
         metropolisStep();
-
     }
     MonteCarloSteps++;
 }
@@ -94,7 +98,10 @@ double IsingSimulation::ComputeEnergy() const{
 }
 
 std::vector<Parameter> IsingSimulation::getParameters() const{
-    return {{"Temperature", temperature, 0.1, 5.0}, {"Magnetic Field",magneticField, -2, 2}};
+    return {{"Temperature", temperature, 0.1, 5.0,ParameterType::Double}, 
+        {"Magnetic Field",magneticField, -2, 2,ParameterType::Double}, 
+        {"Steps Per Frame",static_cast<double>(stepsPerFrame),1,100000,ParameterType::Integer},
+        {"Lattice Size", static_cast<double>(latticeSize),16,512,ParameterType::Integer}};
 }
 
 void IsingSimulation::setParameter(const std::string& name, double value){
@@ -104,10 +111,28 @@ void IsingSimulation::setParameter(const std::string& name, double value){
     else if(name == "Magnetic Field"){
         magneticField = value;
     }
+    else if(name == "Steps Per Frame"){
+        stepsPerFrame = static_cast<int>(value);
+    }
+    else if(name == "Lattice Size"){
+        latticeSize = value;
+        reset();
+    }
 }
 
 std::vector<std::pair<std::string, double>> IsingSimulation::getStats() const{
-    return {{"Temperature", temperature}, {"Magnetic Field", magneticField}, {"Energy",ComputeEnergy()},{"MC sweeps", static_cast<double>(MonteCarloSteps)}};
+    double acceptanceRatio = attemptedFlips > 0 ? static_cast<double>(acceptedFlips)/static_cast<double>(attemptedFlips) : 0;
+    double energyPerSpin = ComputeEnergy()/static_cast<double>(spins.size());
+    return {{"Temperature", temperature}, 
+        {"Magnetic Field", magneticField}, 
+        {"Energy",ComputeEnergy()},
+        {"MC sweeps", static_cast<double>(MonteCarloSteps)},
+        {"Steps Per Frame", static_cast<int>(stepsPerFrame)}, 
+        {"Lattice Size", latticeSize},
+        {"Magnetization", ComputeMagnetization()},
+        {"Abs Magnetization", std::abs(ComputeMagnetization())},
+        {"Energy Per Spin", energyPerSpin},
+        {"Acceptance Ratio", acceptanceRatio}};
 
 }
 

@@ -4,6 +4,8 @@
 #include <QSlider>
 #include <QDoubleSpinBox>
 #include <QHBoxLayout>
+#include <QSpinBox>
+
 
 ParameterPanel::ParameterPanel(QWidget* parent) : QWidget(parent){
     layout = new QVBoxLayout(this);
@@ -31,20 +33,36 @@ void ParameterPanel::setParameters(const std::vector<Parameter>& parameters){
         auto* row = new QWidget(this);
         auto* rowLayout = new QHBoxLayout(row);
         auto* label = new QLabel(QString::fromStdString(parameter.name), row);
-        auto* spinBox = new QDoubleSpinBox(row);
+        if(parameter.type == ParameterType::Double){
+            auto* spinBox = new QDoubleSpinBox(row);
+            
+            spinBox ->setRange(parameter.minValue,parameter.maxValue);
+            spinBox -> setValue(parameter.value);
+            spinBox -> setDecimals(4); 
 
-        spinBox ->setRange(parameter.minValue,parameter.maxValue);
-        spinBox -> setValue(parameter.value);
-        spinBox -> setDecimals(4); 
+            rowLayout->addWidget(label);
+            rowLayout->addWidget(spinBox);
+            layout -> addWidget(row);
+            connect(spinBox,QOverload<double>::of(&QDoubleSpinBox::valueChanged),this,[this,parameter](double value)
+                    {if (OnParameterChanged){
+                            OnParameterChanged(parameter.name, value);
+                        }
+                    });
+        }
+        else{
+            auto* spinBox = new QSpinBox(row);
+            spinBox ->setRange(static_cast<int>(parameter.minValue),static_cast<int>(parameter.maxValue));
+            spinBox -> setValue(static_cast<int>(parameter.value));
 
-        rowLayout->addWidget(label);
-        rowLayout->addWidget(spinBox);
-        layout -> addWidget(row);
-        connect(spinBox,QOverload<double>::of(&QDoubleSpinBox::valueChanged),this,[this,parameter](double value)
-                {if (OnParameterChanged){
-                        OnParameterChanged(parameter.name, value);
-                    }
-                });
+            rowLayout->addWidget(label);
+            rowLayout->addWidget(spinBox);
+            layout -> addWidget(row);
+            connect(spinBox,QOverload<int>::of(&QSpinBox::valueChanged),this,[this,parameter](int value)
+                    {if (OnParameterChanged){
+                            OnParameterChanged(parameter.name, static_cast<double>(value));
+                        }
+                    });
+        }
         layout->addStretch();
     }
 }

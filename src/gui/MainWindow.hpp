@@ -23,7 +23,7 @@ class MainWindow : public QMainWindow{
     QTimer* updateTimer = nullptr;
     bool running = false;
     QComboBox* simulationComboBox = nullptr;
-
+    QLabel* statsLabel = nullptr;
     QPushButton* startButton = nullptr;
     QPushButton* pauseButton = nullptr;
     QPushButton* resetButton = nullptr;
