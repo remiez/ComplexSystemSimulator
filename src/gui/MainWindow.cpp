@@ -1,6 +1,7 @@
 #include "MainWindow.hpp"
 
 #include "ParameterPanel.hpp"
+#include "PlotWidget.hpp"
 #include "../rendering/SFMLWidget.hpp"
 #include "../simulations/IsingSimulation.hpp"
 #include "../simulations/PercolationSimulation.hpp"
@@ -15,6 +16,12 @@
 #include <QVBoxLayout>
 #include <QGroupBox>
 #include <QTimer>
+#include <QFile>
+#include <QTextStream>
+#include <QMessageBox>
+#include <QFileDialog>
+
+#include <algorithm>
 
 
 MainWindow::MainWindow(QWidget* parent)
@@ -30,6 +37,11 @@ void MainWindow::setupUi()
     connect(updateTimer, &QTimer::timeout, this, [this](){
         if(running){
             simulationManager.update(0.016);
+        }
+        auto* ising = dynamic_cast<IsingSimulation*>(simulationManager.currentSimulation());
+        if(ising){
+            magnetizationPlot->setData(&ising->getMagnetizationHistory());
+            magnetizationPlot->update();
         }
         if(simulationManager.currentSimulation()){
             QString text;
@@ -74,20 +86,23 @@ void MainWindow::setupUi()
 
     auto* controlsBox = new QGroupBox("Controls");
     auto* controlsLayout = new QVBoxLayout(controlsBox);
-
+    magnetizationPlot = new PlotWidget();
+    magnetizationPlot->setMinimumHeight(200);
     startButton = new QPushButton("Start");
     pauseButton = new QPushButton("Pause");
     resetButton = new QPushButton("Reset");
-
+    exportButton = new QPushButton("Export CSV");
     controlsLayout->addWidget(startButton);
     controlsLayout->addWidget(pauseButton);
     controlsLayout->addWidget(resetButton);
+    controlsLayout->addWidget(exportButton);
 
     statusLabel = new QLabel("Status: idle");
     statsLabel = new QLabel("Stats: -");
     statsLabel->setWordWrap(true);
+    
     leftPanel->addWidget(statsLabel);
-
+    leftPanel->addWidget(magnetizationPlot);
     leftPanel->addWidget(simulationBox);
     leftPanel->addWidget(parameterBox);
     leftPanel->addWidget(controlsBox);
@@ -123,6 +138,46 @@ void MainWindow::connectSignals()
             simulationManager.currentSimulation()->reset();
         }
         statusLabel->setText("Status: reset");
+    });
+
+    connect(exportButton, &QPushButton::clicked,this, [this](){
+        auto* ising = dynamic_cast<IsingSimulation*>(simulationManager.currentSimulation());
+
+        if(!ising){
+            QMessageBox::warning(this,"Export CSV", "Export for now only for ising simulation");
+            return;
+        }
+
+        QString fileName =  QFileDialog::getSaveFileName(this,"Save Ising Data","ising_data.csv","CSV files (*.csv)");
+
+        if(fileName.isEmpty()){
+            return;
+        }
+
+        QFile file(fileName);
+
+        if(!file.open(QIODevice::WriteOnly | QIODevice::Text)){
+            QMessageBox::critical(this,"Export CSV", "Could not open file for writing");
+            return;
+        }
+
+        QTextStream out(&file);
+
+        const auto& magnetization = ising->getMagnetizationHistory();
+        const auto& energy = ising->getEnergyHistory();
+        const auto& acceptance = ising->getAcceptanceHistory();
+
+        out<<"step,magnetization,energy_per_spin,acceptance_dation\n";
+
+        const size_t n = std::min(magnetization.size(),std::min(energy.size(),acceptance.size()));
+
+        for(size_t i = 0; i<n; ++i){
+            out<<i<<","<<magnetization[i]<<","<<energy[i]<<","<<acceptance[i]<<"\n";
+        }
+
+        file.close();
+
+        QMessageBox::information(this,"Export CSV", "Data exported successfully");
     });
 
     

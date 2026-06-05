@@ -17,6 +17,8 @@ add_executable(ComplexSystemSimulator
     src/gui/MainWindow.hpp
     src/gui/ParameterPanel.cpp
     src/gui/ParameterPanel.hpp
+    src/gui/PlotWidget.cpp
+    src/gui/PlotWidget.hpp
 
     src/rendering/SFMLWidget.cpp
     src/rendering/SFMLWidget.hpp

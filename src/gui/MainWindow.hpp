@@ -9,6 +9,7 @@ class QTimer;
 
 class SFMLWidget;
 class ParameterPanel;
+class PlotWidget;
 
 class MainWindow : public QMainWindow{
     Q_OBJECT
@@ -27,7 +28,8 @@ class MainWindow : public QMainWindow{
     QPushButton* startButton = nullptr;
     QPushButton* pauseButton = nullptr;
     QPushButton* resetButton = nullptr;
-
+    QPushButton* exportButton = nullptr;
+    PlotWidget* magnetizationPlot = nullptr;
     QLabel* statusLabel = nullptr;
 
     ParameterPanel* parameterPanel = nullptr;

@@ -14,6 +14,10 @@ class IsingSimulation : public Simulation
     std::vector<Parameter> getParameters() const override;
     void setParameter(const std::string& name, double value) override;
     std::vector<std::pair<std::string, double>> getStats() const override;
+    const std::vector<double>& getMagnetizationHistory() const;
+    const std::vector<double>& getEnergyHistory() const;
+    const std::vector<double>& getAcceptanceHistory() const;
+    void trimHistory(std::vector<double>& history);
 
     private:
     void updateVertexArray(float cellSize);
@@ -37,5 +41,6 @@ class IsingSimulation : public Simulation
     sf::VertexArray vertices;
     double time = 0;
     std::vector<double> magnetiztionHistory;
-    int maxHistorySize = 200;
+    std::vector<double> energyHistory;
+    std::vector<double> acceptanceRatioHistory;
 };

@@ -19,6 +19,9 @@ void IsingSimulation::reset(){
     MonteCarloSteps = 0;
     attemptedFlips=0;
     acceptedFlips=0;
+    acceptanceRatioHistory.clear();
+    energyHistory.clear();
+    magnetiztionHistory.clear();
 }
 
 void IsingSimulation::randomizeSpin(){
@@ -56,14 +59,27 @@ void IsingSimulation::metropolisStep(){
 
 }
 
-void IsingSimulation::update(double dt){
-    double m = ComputeMagnetization();
-    if( magnetiztionHistory.size() > maxHistorySize){
-        magnetiztionHistory.erase(magnetiztionHistory.begin());
+void IsingSimulation::trimHistory(std::vector<double>& history){
+    if( history.size() > 500){
+        history.erase(history.begin());
     }
+}
+
+void IsingSimulation::update(double dt){
     for(int i=0;i < stepsPerFrame; ++i){
         metropolisStep();
     }
+    double m = ComputeMagnetization();
+    magnetiztionHistory.push_back(m);
+    trimHistory(magnetiztionHistory);
+
+    double E = ComputeEnergy()/static_cast<double>(spins.size());
+    energyHistory.push_back(m);
+    trimHistory(energyHistory);
+
+    double acceptanceRatio = attemptedFlips>0 ? static_cast<double>(acceptedFlips)/static_cast<double>(attemptedFlips) : 0;
+    acceptanceRatioHistory.push_back(acceptanceRatio);
+    trimHistory(acceptanceRatioHistory);
     MonteCarloSteps++;
 }
 
@@ -158,4 +174,13 @@ void IsingSimulation::updateVertexArray(float cellSize){
 
         }
     }
+}
+const std::vector<double>& IsingSimulation::getMagnetizationHistory() const{
+    return magnetiztionHistory;
+}
+const std::vector<double>& IsingSimulation::getEnergyHistory() const{
+    return energyHistory;
+}
+const std::vector<double>& IsingSimulation::getAcceptanceHistory() const{
+    return acceptanceRatioHistory;
 }
