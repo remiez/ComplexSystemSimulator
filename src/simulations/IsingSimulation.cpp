@@ -74,7 +74,7 @@ void IsingSimulation::update(double dt){
     trimHistory(magnetiztionHistory);
 
     double E = ComputeEnergy()/static_cast<double>(spins.size());
-    energyHistory.push_back(m);
+    energyHistory.push_back(E);
     trimHistory(energyHistory);
 
     double acceptanceRatio = attemptedFlips>0 ? static_cast<double>(acceptedFlips)/static_cast<double>(attemptedFlips) : 0;

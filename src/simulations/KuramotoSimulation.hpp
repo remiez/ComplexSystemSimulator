@@ -13,7 +13,15 @@ class KuramotoSimulation : public Simulation
     std::vector<std::pair<std::string, double>> getStats() const override;
 
     private:
+    double PI = std::numbers::pi;
+    std::vector<double> theta;
+    std::vector<double> omega;
+    std::vector<double> thetaNew;
     double coupling = 5;
-    double oscillators = 250;
+    double oscillators = 150;
+    double frequencySpread = 1;
+    double orderParameter = 0;
     double time= 0;
+
+    void computeOrderParameter();
 };

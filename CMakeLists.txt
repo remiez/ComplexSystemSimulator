@@ -34,7 +34,6 @@ add_executable(ComplexSystemSimulator
 
     src/core/SimulationManager.cpp
     src/core/SimulationManager.hpp
-    src/core/SimulationManager.cpp
     src/core/Simulation.hpp
 )
 

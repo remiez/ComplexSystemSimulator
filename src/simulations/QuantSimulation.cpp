@@ -22,13 +22,13 @@ std::vector<Parameter> QuantSimulation::getParameters() const{
 }
 void QuantSimulation::setParameter(const std::string& name, double value){
     if(name == "Volatility"){
-        volatility == value;
+        volatility = value;
     }
     else if(name == "Paths"){
         paths = value;
     }
     else if(name == "Threads"){
-        threads == value;
+        threads = value;
     }
 }
 std::vector<std::pair<std::string, double>> QuantSimulation::getStats() const{
