@@ -9,11 +9,16 @@ PlotWidget::PlotWidget(QWidget* parent)
     setMinimumHeight(200);
 }
 
+/** Store non-owning series pointer and request a repaint; caller keeps the vector alive. */
 void PlotWidget::setData(const std::vector<double>* newData){
     data = newData;
     update();
 }
 
+/**
+ * Draw a min–max normalized time series as a polyline.
+ * Sample index maps to horizontal position; values are scaled to the widget height (y flipped for Qt coords).
+ */
 void PlotWidget::paintEvent(QPaintEvent* event){
     QPainter painter(this);
 
@@ -28,6 +33,7 @@ void PlotWidget::paintEvent(QPaintEvent* event){
         painter.drawText(rect(),Qt::AlignCenter, "Waiting For Data");
         return;
     }
+    // Auto-scale to the current series range; epsilon avoids division when flat.
     double minValue = (*data)[0];
     double maxValue = (*data)[0];
     for(double v : *data){

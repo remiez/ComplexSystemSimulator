@@ -11,14 +11,19 @@ class SFMLWidget;
 class ParameterPanel;
 class PlotWidget;
 
+/** Main application window: simulation selection, controls, stats, and live plots. */
 class MainWindow : public QMainWindow{
     Q_OBJECT
 
     public:
+    /** @param parent Optional Qt parent widget. */
     explicit MainWindow(QWidget* parent = nullptr);
     
     private:
+    /** Build widgets, layouts, and the ~16 ms update timer. */
     void setupUi();
+
+    /** Wire buttons, combo box, parameter panel, and timer callbacks. */
     void connectSignals();
     
     QTimer* updateTimer = nullptr;

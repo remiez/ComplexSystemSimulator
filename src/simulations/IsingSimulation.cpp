@@ -24,18 +24,24 @@ void IsingSimulation::reset(){
     magnetiztionHistory.clear();
 }
 
+/** Assign each site a random spin ±1 with equal probability. */
 void IsingSimulation::randomizeSpin(){
     for(auto& s : spins){
         s = (uniform(rng) < 0.5) ? -1 : 1;
     }
 }
 
+/** Read spin at (x, y) with toroidal (periodic) boundary wrapping. */
 int IsingSimulation::spin(int x, int y) const{
     x = (x+latticeSize) %latticeSize;
     y = (y+latticeSize) %latticeSize;
     return spins[y*latticeSize+x];
 }
 
+/**
+ * Single-site Metropolis flip: accept if ΔE ≤ 0, else with probability exp(−ΔE/T).
+ * ΔE = 2s(J Σnn + h) for the four nearest neighbors on the torus.
+ */
 void IsingSimulation::metropolisStep(){
     attemptedFlips++;
     std::uniform_int_distribution<int> siteDist(0, latticeSize-1);
@@ -65,6 +71,7 @@ void IsingSimulation::trimHistory(std::vector<double>& history){
     }
 }
 
+/** Run stepsPerFrame Metropolis attempts and append magnetization, energy, and acceptance samples. */
 void IsingSimulation::update(double dt){
     for(int i=0;i < stepsPerFrame; ++i){
         metropolisStep();
@@ -93,6 +100,8 @@ void IsingSimulation::render(sf::RenderTarget& target){
     updateVertexArray(cellSize);
     target.draw(vertices);
 }
+
+/** Mean magnetization ⟨s⟩ = (1/N) Σ s_i over all lattice sites. */
 double IsingSimulation::ComputeMagnetization() const{
     double sum =0;
     for(int s : spins){
@@ -101,6 +110,10 @@ double IsingSimulation::ComputeMagnetization() const{
     return sum/static_cast<double>(spins.size());
 }
 
+/**
+ * Ising Hamiltonian H = −J Σ⟨ij⟩ s_i s_j − h Σ s_i.
+ * Each bond counted once via right and down neighbors only.
+ */
 double IsingSimulation::ComputeEnergy() const{
     double E = 0.0;
     for(int y = 0; y <latticeSize; ++y){
@@ -120,6 +133,7 @@ std::vector<Parameter> IsingSimulation::getParameters() const{
         {"Lattice Size", static_cast<double>(latticeSize),16,512,ParameterType::Integer}};
 }
 
+/** Lattice Size resizes the spin array and re-initializes the model via reset(). */
 void IsingSimulation::setParameter(const std::string& name, double value){
     if(name == "Temperature"){
         temperature = value;
@@ -152,6 +166,7 @@ std::vector<std::pair<std::string, double>> IsingSimulation::getStats() const{
 
 }
 
+/** Fill SFML quads with square cells; +1 spins red, −1 spins blue. */
 void IsingSimulation::updateVertexArray(float cellSize){
 
     for(int y = 0; y <latticeSize; ++y){

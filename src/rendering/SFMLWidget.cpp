@@ -5,6 +5,7 @@
 #include <QPainter>
 #include "../core/Simulation.hpp"
 
+/** Configure widget for direct SFML drawing and drive render() on a ~60 Hz QTimer. */
 SFMLWidget::SFMLWidget(QWidget* parent) : QWidget(parent)
 {
     setAttribute(Qt::WA_PaintOnScreen);
@@ -23,6 +24,7 @@ SFMLWidget::~SFMLWidget(){
     }
 }
 
+/** Return nullptr so Qt does not paint over the SFML framebuffer. */
 QPaintEngine* SFMLWidget::paintEngine() const{
     return nullptr;
 }
@@ -40,12 +42,14 @@ void SFMLWidget::paintEvent(QPaintEvent* event){
     render();
 }
 
+/** Create the embedded sf::RenderWindow once the native widget handle is valid. */
 void SFMLWidget::initialize(){
     sfmlWindow.create((sf::WindowHandle)winId());
     sfmlWindow.setFramerateLimit(60);
     initialized = true;
 }
 
+/** Clear framebuffer, delegate to Simulation::render(), and present. */
 void SFMLWidget::render(){
     if (!initialized){
         return;
@@ -59,6 +63,7 @@ void SFMLWidget::render(){
 
 }
 
+/** Non-owning pointer; caller (MainWindow) must outlive this widget. */
 void SFMLWidget::setSimulation(Simulation* sim){
     simulation=sim;
 }

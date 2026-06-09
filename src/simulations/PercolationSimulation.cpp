@@ -35,6 +35,7 @@ std::vector<Parameter> PercolationSimulation::getParameters() const{
     return {{"Propability",occupationPropability,0,1,ParameterType::Double},
         {"Grid Size", static_cast<double>(gridSize), 16,512, ParameterType::Integer}};
 }
+/** Any parameter change regenerates the random grid and recomputes clusters. */
 void PercolationSimulation::setParameter(const std::string& name, double value){
     if(name == "Propability"){
         occupationPropability = value;
@@ -53,11 +54,13 @@ std::vector<std::pair<std::string, double>> PercolationSimulation::getStats() co
         {"Percolates", doesPercolate ? 1 : 0}};
 }
 
+/** Bernoulli site occupation: each cell is occupied independently with probability p. */
 void PercolationSimulation::generateGrid(){
     for(auto& cell : grid){
         cell = (uniform(rng) < occupationPropability) ? 1 : 0;
     }
 }
+/** Label each occupied connected component; assign clusterCount and track the largest cluster. */
 void PercolationSimulation::identifyClusters(){
     std::fill(clusterLabels.begin(),clusterLabels.end(), -1);
     clusterCount = 0;
@@ -72,6 +75,7 @@ void PercolationSimulation::identifyClusters(){
         }
     }
 }
+/** Breadth-first search labeling of one 4-connected occupied cluster starting at (startX, startY). */
 void PercolationSimulation::floodFill(int startX, int startY, int label){
     int clusterSize = 0;
     std::queue<std::pair<int,int>> q;
@@ -101,6 +105,10 @@ void PercolationSimulation::floodFill(int startX, int startY, int label){
         largestClusterLabel = label;
     }
 }
+/**
+ * Percolation occurs when any cluster touches opposite boundaries:
+ * top–bottom or left–right (open boundary percolation on the grid).
+ */
 void PercolationSimulation::checkPercolation(){
     doesPercolate = false;
     percolatingClusterLabel = -1;
@@ -127,6 +135,7 @@ void PercolationSimulation::checkPercolation(){
         }
     }
 }
+/** Color cells by role: empty, percolating cluster, largest cluster, or other occupied sites. */
 void PercolationSimulation::updateVertexArray(float cellWidth, float cellHeight){
     for(int y = 0;y<gridSize; ++y){
         for(int x = 0;x<gridSize; ++x){

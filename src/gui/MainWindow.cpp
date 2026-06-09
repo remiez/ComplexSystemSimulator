@@ -31,9 +31,11 @@ MainWindow::MainWindow(QWidget* parent)
     connectSignals();
 }
 
+/** Build layout, wire parameter panel to the active simulation, and start the stats/update timer. */
 void MainWindow::setupUi()
 {
     updateTimer = new QTimer(this);
+    // ~60 Hz tick: advance simulation when running, refresh Ising plot and stats label.
     connect(updateTimer, &QTimer::timeout, this, [this](){
         if(running){
             simulationManager.update(0.016);
@@ -67,6 +69,7 @@ void MainWindow::setupUi()
     auto* parameterBoxLayout =new QVBoxLayout(parameterBox);
     parameterPanel = new ParameterPanel();
     parameterBoxLayout ->addWidget(parameterPanel);
+    // Forward spin-box edits to the owned simulation via SimulationManager.
     parameterPanel->setOnParameterChanged([this](const std::string& name, double value)
         {
             if(simulationManager.currentSimulation()){
@@ -116,11 +119,13 @@ void MainWindow::setupUi()
 
     setCentralWidget(centralWidget);
     setWindowTitle("Complex System Simulator");
+    // Default simulation: Ising, rendered in SFMLWidget and mirrored in ParameterPanel.
     simulationManager.setSimulation(std::make_unique<IsingSimulation>());
     renderWidget ->setSimulation(simulationManager.currentSimulation());
     parameterPanel -> setParameters(simulationManager.currentSimulation()->getParameters());
 }
 
+/** Connect run/pause/reset, CSV export, and simulation-type switching to SimulationManager and widgets. */
 void MainWindow::connectSignals()
 {
     connect(startButton, &QPushButton::clicked, this, [this]() {
@@ -181,6 +186,7 @@ void MainWindow::connectSignals()
     });
 
     
+    // Replace owned simulation, rebind SFMLWidget and rebuild parameter controls.
     connect(simulationComboBox, &QComboBox::currentTextChanged, this, 
             [this](const QString& text) {
                 if(text == "Ising"){

@@ -9,6 +9,7 @@ std::string KuramotoSimulation::name() const{
     return "Kuramoto";
 }
 
+/** Randomize phases uniformly on [0, 2π) and natural frequencies in [−spread, spread]. */
 void KuramotoSimulation::reset(){
     theta.resize(oscillators);
     omega.resize(oscillators);
@@ -29,6 +30,10 @@ void KuramotoSimulation::reset(){
     computeOrderParameter();
 }
 
+/**
+ * Kuramoto dynamics: dθ_i/dt = ω_i + (K/N) Σ_j sin(θ_j − θ_i).
+ * Phases are wrapped back into [0, 2π) after each Euler step.
+ */
 void KuramotoSimulation::update(double dt){
     if(theta.size() != static_cast<size_t>(oscillators) || omega.size() != static_cast<size_t>(oscillators) || thetaNew.size() != static_cast<size_t>(oscillators)){
         reset();
@@ -53,6 +58,8 @@ void KuramotoSimulation::update(double dt){
     }
     computeOrderParameter();
 }
+
+/** Map each oscillator phase to a point on a circle centered in the render target. */
 void KuramotoSimulation::render(sf::RenderTarget& target){
     if(theta.empty()){
         return;
@@ -87,6 +94,8 @@ std::vector<Parameter> KuramotoSimulation::getParameters() const{
         {"Oscillators", static_cast<double>(oscillators), 10, 300,ParameterType::Integer},
         {"Frequency Spread", frequencySpread, 0,5, ParameterType::Double}};
 }
+
+/** Oscillators or Frequency Spread change vector sizes and require re-initialization. */
 void KuramotoSimulation::setParameter(const std::string& name, double value){
     if(name == "Coupling"){
         coupling=value;
@@ -108,6 +117,7 @@ std::vector<std::pair<std::string, double>> KuramotoSimulation::getStats() const
     {"Time", time}};
 }
 
+/** Synchronization order parameter r = |⟨e^{iθ}⟩| (mean-field phase coherence). */
 void KuramotoSimulation::computeOrderParameter(){
     double real = 0;
     double imag = 0;

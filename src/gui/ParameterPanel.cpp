@@ -15,6 +15,7 @@ void ParameterPanel::setOnParameterChanged(std::function<void(const std::string&
     OnParameterChanged = std::move(callback);
 }
 
+/** Remove all dynamically created parameter rows before rebuilding. */
 void ParameterPanel::ClearLayout()
 {
     while(auto* item = layout->takeAt(0)){
@@ -26,6 +27,10 @@ void ParameterPanel::ClearLayout()
     }
 }
 
+/**
+ * Build one label + spin box per Parameter; Double vs Integer selects QDoubleSpinBox/QSpinBox.
+ * valueChanged signals invoke OnParameterChanged with the parameter name captured in the lambda.
+ */
 void ParameterPanel::setParameters(const std::vector<Parameter>& parameters){
     ClearLayout();
 

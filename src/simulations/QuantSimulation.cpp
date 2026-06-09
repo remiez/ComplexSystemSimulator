@@ -11,6 +11,7 @@ std::string QuantSimulation::name() const
     return "Quant";
 }
 
+/** Clamp path/thread counts, allocate buffers, and launch the Monte Carlo run synchronously. */
 void QuantSimulation::reset()
 {
     paths = std::max(1, paths);
@@ -35,6 +36,7 @@ void QuantSimulation::update(double dt)
     time += dt;
 }
 
+/** Draw stored sample paths scaled to the global min/max price across visible trajectories. */
 void QuantSimulation::render(sf::RenderTarget& target)
 {
     if(!simulationReady || samplePaths.empty())
@@ -104,6 +106,7 @@ std::vector<Parameter> QuantSimulation::getParameters() const
     };
 }
 
+/** Stored values take effect on the next reset(); no mid-run re-simulation. */
 void QuantSimulation::setParameter(const std::string& name, double value)
 {
     if(name == "Volatility")
@@ -141,6 +144,7 @@ std::vector<std::pair<std::string, double>> QuantSimulation::getStats() const
     };
 }
 
+/** Partition paths across worker threads (remainder distributed to low indices) and join. */
 void QuantSimulation::runSimulation()
 {
     auto start = std::chrono::high_resolution_clock::now();
@@ -188,6 +192,11 @@ void QuantSimulation::runSimulation()
     simulationReady = true;
 }
 
+/**
+ * Simulate paths [startPath, endPath) with independent RNG seeds.
+ * Geometric Brownian motion: S ← S exp((μ − σ²/2)dt + σ√dt Z).
+ * Only the first displayedPaths trajectories are stored for rendering.
+ */
 void QuantSimulation::simulateRange(int startPath, int endPath, unsigned int seed)
 {
     std::mt19937 rng(seed);
@@ -225,6 +234,7 @@ void QuantSimulation::simulateRange(int startPath, int endPath, unsigned int see
     }
 }
 
+/** Monte Carlo estimate of E[S(T)] over all simulated paths. */
 void QuantSimulation::computeMeanFinalPrice()
 {
     if(finalPrices.empty())
