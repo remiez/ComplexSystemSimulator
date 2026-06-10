@@ -43,8 +43,11 @@ void MainWindow::setupUi()
         auto* ising = dynamic_cast<IsingSimulation*>(simulationManager.currentSimulation());
         if(ising){
             magnetizationPlot->setData(&ising->getMagnetizationHistory());
-            magnetizationPlot->update();
         }
+        else{
+            magnetizationPlot->setData(nullptr);
+        }
+        magnetizationPlot->update();
         if(simulationManager.currentSimulation()){
             QString text;
 
@@ -103,7 +106,7 @@ void MainWindow::setupUi()
     statusLabel = new QLabel("Status: idle");
     statsLabel = new QLabel("Stats: -");
     statsLabel->setWordWrap(true);
-    
+
     leftPanel->addWidget(statsLabel);
     leftPanel->addWidget(magnetizationPlot);
     leftPanel->addWidget(simulationBox);
@@ -185,10 +188,11 @@ void MainWindow::connectSignals()
         QMessageBox::information(this,"Export CSV", "Data exported successfully");
     });
 
-    
+
     // Replace owned simulation, rebind SFMLWidget and rebuild parameter controls.
-    connect(simulationComboBox, &QComboBox::currentTextChanged, this, 
+    connect(simulationComboBox, &QComboBox::currentTextChanged, this,
             [this](const QString& text) {
+                running = false;
                 if(text == "Ising"){
                     simulationManager.setSimulation(std::make_unique<IsingSimulation>());
                 }
@@ -204,7 +208,7 @@ void MainWindow::connectSignals()
 
                 renderWidget->setSimulation(simulationManager.currentSimulation());
                 statusLabel->setText("Status: " + text);
-                
+
                 if(simulationManager.currentSimulation()){
                     parameterPanel->setParameters(simulationManager.currentSimulation()->getParameters());
                 }

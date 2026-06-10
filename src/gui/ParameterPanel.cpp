@@ -18,9 +18,9 @@ void ParameterPanel::setOnParameterChanged(std::function<void(const std::string&
 /** Remove all dynamically created parameter rows before rebuilding. */
 void ParameterPanel::ClearLayout()
 {
-    while(auto* item = layout->takeAt(0)){
-        if(auto* widget = item->widget()){
-            widget->deleteLater();
+    while(QLayoutItem* item = layout->takeAt(0)){
+        if(QWidget* widget = item->widget()){
+            delete widget;
         }
 
         delete item;
@@ -40,10 +40,10 @@ void ParameterPanel::setParameters(const std::vector<Parameter>& parameters){
         auto* label = new QLabel(QString::fromStdString(parameter.name), row);
         if(parameter.type == ParameterType::Double){
             auto* spinBox = new QDoubleSpinBox(row);
-            
+
             spinBox ->setRange(parameter.minValue,parameter.maxValue);
             spinBox -> setValue(parameter.value);
-            spinBox -> setDecimals(4); 
+            spinBox -> setDecimals(4);
 
             rowLayout->addWidget(label);
             rowLayout->addWidget(spinBox);
@@ -68,6 +68,6 @@ void ParameterPanel::setParameters(const std::vector<Parameter>& parameters){
                         }
                     });
         }
-        layout->addStretch();
     }
+    layout->addStretch();
 }
